@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "**Image 1 (Dashboard):**\n*   **Layout:** No breaks or horizontal overflow. The layout is clean and well-padded.\n*   **Text/Readability:** All text is fully readable. The \"Coming up\" list items wrap correctly without being cut off.\n*   **Elements:** No cramped elements; spacing is comfortable for a 390px width.\n\n**Image 2 (Library):**\n*   **Layout:** Stable with no overflow.\n*   **Text/Readability:** Fully readable. The long subtitle (\"subjects, chapters, topics...\") wraps naturally to two lines.\n*   **Elements:** The \"New subject\" button and the \"Physics\" card are well-sized.\n\n**Image 3 (Note Viewer):**\n*   **Layout:** This view appears to be a desktop/tablet screenshot (wider than 390px), but the content itself has no issues.\n*   **Text/Readability:** Text on the ruled paper is perfectly clear and legible.\n*   **Elements:** The top action bar is dense but functional, and the note content is well-spaced within the paper margins.\n\n**Overall Verdict:** All views appear to be free of mobile-specific bugs like cut-off text or broken layouts.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1788011726,
+  "id": "20260829215518f680360ee9274f1d",
+  "model": "glm-5v-turbo",
+  "object": "chat.completion",
+  "request_id": "20260829215518f680360ee9274f1d",
+  "usage": {
+    "completion_tokens": 255,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1730,
+    "prompt_tokens_details": {
+      "cached_tokens": 2
+    },
+    "total_tokens": 1985
+  }
+}

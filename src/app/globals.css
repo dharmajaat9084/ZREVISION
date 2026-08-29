@@ -1,0 +1,343 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+@custom-variant night (&:is(.night *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-body);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ── Paper (light notebook) theme ─────────────────────────────────── */
+:root {
+  --radius: 0.55rem;
+
+  --paper: #f6f0e1;
+  --paper-deep: #efe7d2;
+  --ink: #38332a;
+  --ink-soft: #6f6654;
+  --ink-faint: #a29781;
+  --line: #ddd2b4;
+  --margin-red: #d0605a;
+  --highlight: #ffd66b;
+  --tape: rgba(245, 205, 108, 0.55);
+
+  --background: #f6f0e1;
+  --foreground: #38332a;
+  --card: #fffcf3;
+  --card-foreground: #38332a;
+  --popover: #fffcf3;
+  --popover-foreground: #38332a;
+  --primary: #c65953;
+  --primary-foreground: #fffaf2;
+  --secondary: #efe7d2;
+  --secondary-foreground: #57503f;
+  --muted: #efe8d6;
+  --muted-foreground: #7a7160;
+  --accent: #fbe9c0;
+  --accent-foreground: #5f5227;
+  --destructive: #b3403a;
+  --border: #e0d5ba;
+  --input: #d8ccb0;
+  --ring: #c65953;
+  --chart-1: #c65953;
+  --chart-2: #d98e32;
+  --chart-3: #7d9a4a;
+  --chart-4: #4f8f7b;
+  --chart-5: #8b6fae;
+  --sidebar: #f2ead7;
+  --sidebar-foreground: #38332a;
+  --sidebar-primary: #c65953;
+  --sidebar-primary-foreground: #fffaf2;
+  --sidebar-accent: #e9dfc6;
+  --sidebar-accent-foreground: #38332a;
+  --sidebar-border: #ddcfac;
+  --sidebar-ring: #c65953;
+}
+
+/* ── Night desk theme (dark paper) ────────────────────────────────── */
+html.night {
+  --paper: #26211a;
+  --paper-deep: #2e2820;
+  --ink: #ece3cf;
+  --ink-soft: #c4b99f;
+  --ink-faint: #8f8570;
+  --line: #3d362a;
+  --margin-red: #c96f68;
+  --highlight: #d9b04f;
+  --tape: rgba(160, 130, 60, 0.35);
+
+  --background: #26211a;
+  --foreground: #ece3cf;
+  --card: #2f2921;
+  --card-foreground: #ece3cf;
+  --popover: #2f2921;
+  --popover-foreground: #ece3cf;
+  --primary: #d97d72;
+  --primary-foreground: #2b1815;
+  --secondary: #3a3327;
+  --secondary-foreground: #d8cdb4;
+  --muted: #383126;
+  --muted-foreground: #b1a68c;
+  --accent: #4a3d24;
+  --accent-foreground: #ecd9a8;
+  --destructive: #d0685f;
+  --border: #453c2d;
+  --input: #4a4030;
+  --ring: #d97d72;
+  --chart-1: #d97d72;
+  --chart-2: #dfa04c;
+  --chart-3: #9db06c;
+  --chart-4: #6fae99;
+  --chart-5: #ab90c9;
+  --sidebar: #221d16;
+  --sidebar-foreground: #ece3cf;
+  --sidebar-primary: #d97d72;
+  --sidebar-primary-foreground: #2b1815;
+  --sidebar-accent: #352e22;
+  --sidebar-accent-foreground: #ece3cf;
+  --sidebar-border: #40382a;
+  --sidebar-ring: #d97d72;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  }
+  ::selection {
+    background: var(--highlight);
+    color: #38332a;
+  }
+}
+
+/* ── notebook utilities ───────────────────────────────────────────── */
+
+.font-display {
+  font-family: var(--font-display), "Comic Sans MS", cursive;
+}
+.font-hand {
+  font-family: var(--font-hand), "Comic Sans MS", cursive;
+}
+
+/* subtle recycled-paper grain */
+.paper-grain {
+  background-color: var(--background);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.24 0 0 0 0 0.21 0 0 0 0 0.15 0 0 0 0.035 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ruled notebook lines + red margin, for reading/writing areas */
+.ruled-paper {
+  background-color: var(--card);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 30px,
+    var(--line) 30px,
+    var(--line) 31px
+  );
+  background-attachment: local;
+}
+.margin-line {
+  position: relative;
+}
+.margin-line::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 2.4rem;
+  width: 2px;
+  background: var(--margin-red);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* hand-drawn wobbly borders */
+.sketch {
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+}
+.sketch-2 {
+  border-radius: 15px 225px 15px 255px / 225px 15px 255px 15px;
+}
+
+/* offset ink shadow for buttons/cards */
+.ink-shadow {
+  box-shadow: 2px 3px 0 rgba(56, 51, 42, 0.16);
+}
+.ink-shadow-sm {
+  box-shadow: 1.5px 2px 0 rgba(56, 51, 42, 0.14);
+}
+.ink-shadow-hover {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.ink-shadow-hover:hover {
+  transform: translateY(-2px) rotate(-0.3deg);
+  box-shadow: 3px 5px 0 rgba(56, 51, 42, 0.2);
+}
+html.night .ink-shadow,
+html.night .ink-shadow-sm {
+  box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* washi tape strip */
+.tape {
+  position: absolute;
+  width: 84px;
+  height: 26px;
+  top: -13px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  background: var(--tape);
+  border-left: 2px dashed rgba(255, 252, 240, 0.7);
+  border-right: 2px dashed rgba(255, 252, 240, 0.7);
+  box-shadow: 0 1px 2px rgba(56, 51, 42, 0.12);
+  pointer-events: none;
+}
+
+/* ring-binder holes along sidebar edge */
+.binder-holes::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 7px;
+  width: 13px;
+  background-image: radial-gradient(
+    circle at 50% 50%,
+    var(--background) 4px,
+    rgba(0, 0, 0, 0.12) 4.5px,
+    transparent 5.5px
+  );
+  background-size: 13px 34px;
+  background-repeat: repeat-y;
+  background-position: center;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+/* doodle underline for headings */
+.doodle-underline {
+  position: relative;
+  display: inline-block;
+}
+.doodle-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: -4px;
+  bottom: -6px;
+  height: 7px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='8' viewBox='0 0 120 8'%3E%3Cpath d='M2 5 Q 18 1 34 4.5 T 66 4 T 98 3.5 T 118 4' fill='none' stroke='%23c65953' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E")
+    left bottom / 100% 100% no-repeat;
+  opacity: 0.75;
+}
+
+/* highlighter marker effect */
+.marker {
+  background: linear-gradient(to top, var(--highlight) 42%, transparent 42%);
+  background-size: 100% 88%;
+  background-repeat: no-repeat;
+  background-position: 0 60%;
+  padding: 0 2px;
+}
+
+/* thin ink scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-faint) transparent;
+}
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ink-faint) 70%, transparent);
+  border-radius: 99px;
+  border: 2px solid var(--background);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-soft);
+}
+
+/* focus visibility for keyboard users */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* notebook divider tab */
+.divider-tab {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+}
+
+/* dashed hand-drawn separator */
+.doodle-sep {
+  border: none;
+  height: 0;
+  background-image: linear-gradient(to right, var(--line) 55%, transparent 45%);
+  background-size: 12px 2px;
+  background-repeat: repeat-x;
+  height: 2px;
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-1deg); }
+  50% { transform: rotate(1.2deg); }
+}
+.wiggle-hover:hover {
+  animation: wiggle 0.35s ease-in-out;
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.pop-in {
+  animation: pop-in 0.22s ease-out both;
+}
