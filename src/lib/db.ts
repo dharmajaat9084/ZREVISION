@@ -15,86 +15,160 @@ export const STORES = {
 } as const
 
 let dbPromise: Promise<IDBDatabase> | null = null
+let useMemoryFallback = false
+const memoryStores = new Map<string, Map<string, unknown>>()
+
+function getMemoryStore(store: string): Map<string, unknown> {
+  let m = memoryStores.get(store)
+  if (!m) {
+    m = new Map<string, unknown>()
+    memoryStores.set(store, m)
+  }
+  return m
+}
+
+function getItemKey(value: unknown): string {
+  if (value && typeof value === 'object') {
+    if ('id' in value && value.id != null) return String(value.id)
+    if ('key' in value && value.key != null) return String(value.key)
+  }
+  return String(value)
+}
 
 function openDB(): Promise<IDBDatabase> {
+  if (useMemoryFallback) {
+    return Promise.reject(new Error('Using in-memory fallback store'))
+  }
   if (dbPromise) return dbPromise
   dbPromise = new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION)
-    req.onupgradeneeded = () => {
-      const db = req.result
-      if (!db.objectStoreNames.contains(STORES.nodes)) {
-        const s = db.createObjectStore(STORES.nodes, { keyPath: 'id' })
-        s.createIndex('parentId', 'parentId')
-      }
-      if (!db.objectStoreNames.contains(STORES.items)) {
-        const s = db.createObjectStore(STORES.items, { keyPath: 'id' })
-        s.createIndex('nodeId', 'nodeId')
-      }
-      if (!db.objectStoreNames.contains(STORES.blobs)) {
-        db.createObjectStore(STORES.blobs, { keyPath: 'key' })
-      }
-      if (!db.objectStoreNames.contains(STORES.reviews)) {
-        const s = db.createObjectStore(STORES.reviews, { keyPath: 'id' })
-        s.createIndex('itemId', 'itemId')
-      }
-      if (!db.objectStoreNames.contains(STORES.logs)) {
-        const s = db.createObjectStore(STORES.logs, { keyPath: 'id' })
-        s.createIndex('date', 'date')
-      }
-      if (!db.objectStoreNames.contains(STORES.meta)) {
-        db.createObjectStore(STORES.meta, { keyPath: 'key' })
-      }
+    if (typeof window === 'undefined' || typeof indexedDB === 'undefined') {
+      useMemoryFallback = true
+      return reject(new Error('IndexedDB is not supported or unavailable'))
     }
-    req.onsuccess = () => resolve(req.result)
-    req.onerror = () => reject(req.error)
+    try {
+      const req = indexedDB.open(DB_NAME, DB_VERSION)
+      req.onupgradeneeded = () => {
+        const db = req.result
+        if (!db.objectStoreNames.contains(STORES.nodes)) {
+          const s = db.createObjectStore(STORES.nodes, { keyPath: 'id' })
+          s.createIndex('parentId', 'parentId')
+        }
+        if (!db.objectStoreNames.contains(STORES.items)) {
+          const s = db.createObjectStore(STORES.items, { keyPath: 'id' })
+          s.createIndex('nodeId', 'nodeId')
+        }
+        if (!db.objectStoreNames.contains(STORES.blobs)) {
+          db.createObjectStore(STORES.blobs, { keyPath: 'key' })
+        }
+        if (!db.objectStoreNames.contains(STORES.reviews)) {
+          const s = db.createObjectStore(STORES.reviews, { keyPath: 'id' })
+          s.createIndex('itemId', 'itemId')
+        }
+        if (!db.objectStoreNames.contains(STORES.logs)) {
+          const s = db.createObjectStore(STORES.logs, { keyPath: 'id' })
+          s.createIndex('date', 'date')
+        }
+        if (!db.objectStoreNames.contains(STORES.meta)) {
+          db.createObjectStore(STORES.meta, { keyPath: 'key' })
+        }
+      }
+      req.onsuccess = () => resolve(req.result)
+      req.onerror = () => {
+        useMemoryFallback = true
+        reject(req.error || new Error('Failed to open IndexedDB'))
+      }
+    } catch (err) {
+      useMemoryFallback = true
+      reject(err)
+    }
   })
   return dbPromise
 }
 
-function tx<T>(
+async function tx<T>(
   store: string,
   mode: IDBTransactionMode,
   fn: (store: IDBObjectStore) => IDBRequest<T> | void
 ): Promise<T> {
-  return openDB().then(
-    (db) =>
-      new Promise<T>((resolve, reject) => {
+  if (useMemoryFallback) {
+    throw new Error('Using memory fallback')
+  }
+  try {
+    const db = await openDB()
+    return await new Promise<T>((resolve, reject) => {
+      try {
         const t = db.transaction(store, mode)
         const s = t.objectStore(store)
         const req = fn(s)
         t.oncomplete = () => resolve((req as IDBRequest<T>)?.result ?? (undefined as unknown as T))
         t.onerror = () => reject(t.error)
         t.onabort = () => reject(t.error)
-      })
-  )
+      } catch (err) {
+        reject(err)
+      }
+    })
+  } catch (err) {
+    useMemoryFallback = true
+    throw err
+  }
 }
 
 /* ── generic helpers ──────────────────────────────────────────────── */
 
 export async function idbGetAll<T>(store: string): Promise<T[]> {
-  return tx<T[]>(store, 'readonly', (s) => s.getAll()) ?? []
+  try {
+    const res = await tx<T[]>(store, 'readonly', (s) => s.getAll())
+    return res ?? []
+  } catch {
+    const mem = getMemoryStore(store)
+    return Array.from(mem.values()) as T[]
+  }
 }
 
 export async function idbGet<T>(store: string, key: string): Promise<T | undefined> {
-  return tx<T | undefined>(store, 'readonly', (s) => s.get(key))
+  try {
+    return await tx<T | undefined>(store, 'readonly', (s) => s.get(key))
+  } catch {
+    const mem = getMemoryStore(store)
+    return mem.get(key) as T | undefined
+  }
 }
 
 export async function idbPut<T>(store: string, value: T): Promise<void> {
-  await tx(store, 'readwrite', (s) => {
-    s.put(value as unknown as Record<string, unknown>)
-  })
+  const k = getItemKey(value)
+  const mem = getMemoryStore(store)
+  mem.set(k, value)
+  try {
+    await tx(store, 'readwrite', (s) => {
+      s.put(value as unknown as Record<string, unknown>)
+    })
+  } catch {
+    /* safely fallback to memory store (already saved) */
+  }
 }
 
 export async function idbDelete(store: string, key: string): Promise<void> {
-  await tx(store, 'readwrite', (s) => {
-    s.delete(key)
-  })
+  const mem = getMemoryStore(store)
+  mem.delete(key)
+  try {
+    await tx(store, 'readwrite', (s) => {
+      s.delete(key)
+    })
+  } catch {
+    /* fallback to memory store */
+  }
 }
 
 export async function idbClear(store: string): Promise<void> {
-  await tx(store, 'readwrite', (s) => {
-    s.clear()
-  })
+  const mem = getMemoryStore(store)
+  mem.clear()
+  try {
+    await tx(store, 'readwrite', (s) => {
+      s.clear()
+    })
+  } catch {
+    /* fallback to memory store */
+  }
 }
 
 /* ── blobs ────────────────────────────────────────────────────────── */

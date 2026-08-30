@@ -109,7 +109,16 @@ interface AppState {
 }
 
 const now = () => Date.now()
-const uid = () => crypto.randomUUID()
+const uid = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    try {
+      return crypto.randomUUID()
+    } catch {
+      /* fallback below if crypto.randomUUID is restricted */
+    }
+  }
+  return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
+}
 
 function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -178,17 +187,23 @@ export const useApp = create<AppState>((set, get) => ({
   session: null,
 
   init: async () => {
-    const { nodes, items, reviews, logs, settings } = await loadAll()
-    const recentRec = await idbGet<{ key: string; value: { id: string; at: number }[] }>(STORES.meta, 'recents')
-    set({
-      hydrated: true,
-      nodes: Object.fromEntries(nodes.map((n) => [n.id, n])),
-      items: Object.fromEntries(items.map((i) => [i.id, i])),
-      reviews: Object.fromEntries(reviews.map((r) => [r.id, r])),
-      logs: logs.sort((a, b) => a.date - b.date),
-      settings: { ...DEFAULT_SETTINGS, ...(settings ?? {}) },
-      recents: recentRec?.value ?? [],
-    })
+    try {
+      const { nodes, items, reviews, logs, settings } = await loadAll()
+      const recentRec = await idbGet<{ key: string; value: { id: string; at: number }[] }>(STORES.meta, 'recents').catch(() => undefined)
+      set({
+        hydrated: true,
+        nodes: Object.fromEntries(nodes.map((n) => [n.id, n])),
+        items: Object.fromEntries(items.map((i) => [i.id, i])),
+        reviews: Object.fromEntries(reviews.map((r) => [r.id, r])),
+        logs: logs.sort((a, b) => a.date - b.date),
+        settings: { ...DEFAULT_SETTINGS, ...(settings ?? {}) },
+        recents: recentRec?.value ?? [],
+      })
+    } catch {
+      set({
+        hydrated: true,
+      })
+    }
   },
 
   /* ── nodes ─────────────────────────────────────────────────────── */
