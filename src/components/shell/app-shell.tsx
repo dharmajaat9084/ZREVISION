@@ -67,23 +67,27 @@ export function AppShell() {
   useEffect(() => {
     if (!hydrated || !settings.notificationsEnabled) return
     const check = () => {
-      if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
-      const due = Object.values(useApp.getState().reviews).filter((r) => !r.suspended && r.due <= Date.now())
-      if (due.length === 0) return
-      const [h, m] = settings.reminderTime.split(':').map(Number)
-      const reminder = new Date()
-      reminder.setHours(h, m, 0, 0)
-      const last = settings.lastReminderCheck
-      const sameDay = last > 0 && new Date(last).toDateString() === new Date().toDateString()
-      if (Date.now() >= reminder.getTime() && !sameDay) {
-        try {
-          new Notification('StudyNest — time to revise', {
-            body: `${due.length} ${due.length === 1 ? 'item is' : 'items are'} due for review today. Keep the streak alive!`,
-          })
-        } catch {
-          /* notifications unavailable */
+      try {
+        if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
+        const due = Object.values(useApp.getState().reviews).filter((r) => !r.suspended && r.due <= Date.now())
+        if (due.length === 0) return
+        const [h, m] = settings.reminderTime.split(':').map(Number)
+        const reminder = new Date()
+        reminder.setHours(h, m, 0, 0)
+        const last = settings.lastReminderCheck
+        const sameDay = last > 0 && new Date(last).toDateString() === new Date().toDateString()
+        if (Date.now() >= reminder.getTime() && !sameDay) {
+          try {
+            new Notification('StudyNest — time to revise', {
+              body: `${due.length} ${due.length === 1 ? 'item is' : 'items are'} due for review today. Keep the streak alive!`,
+            })
+          } catch {
+            /* notifications unavailable */
+          }
+          useApp.getState().saveSettings({ lastReminderCheck: Date.now() })
         }
-        useApp.getState().saveSettings({ lastReminderCheck: Date.now() })
+      } catch {
+        /* safety guard against restricted browser environments */
       }
     }
     check()
@@ -205,10 +209,15 @@ function DesktopSidebar({ dueCount }: { dueCount: number }) {
   const [usage, setUsage] = useState<{ used: number; quota: number } | null>(null)
 
   useEffect(() => {
-    const read = () =>
-      navigator.storage?.estimate?.().then((e) => {
-        if (e.usage != null && e.quota != null) setUsage({ used: e.usage, quota: e.quota })
-      })
+    const read = () => {
+      try {
+        navigator.storage?.estimate?.().then((e) => {
+          if (e && e.usage != null && e.quota != null) setUsage({ used: e.usage, quota: e.quota })
+        }).catch(() => {})
+      } catch {
+        /* storage API unavailable */
+      }
+    }
     read()
     const t = setInterval(read, 30_000)
     return () => clearInterval(t)

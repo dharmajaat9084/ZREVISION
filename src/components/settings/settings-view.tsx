@@ -34,10 +34,18 @@ export function SettingsView() {
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    setPerm(typeof Notification === 'undefined' ? 'unsupported' : Notification.permission)
-    navigator.storage?.estimate?.().then((e) => {
-      if (e.usage != null && e.quota != null) setUsage({ used: e.usage, quota: e.quota })
-    })
+    try {
+      setPerm(typeof Notification === 'undefined' ? 'unsupported' : Notification.permission)
+    } catch {
+      setPerm('unsupported')
+    }
+    try {
+      navigator.storage?.estimate?.().then((e) => {
+        if (e && e.usage != null && e.quota != null) setUsage({ used: e.usage, quota: e.quota })
+      }).catch(() => {})
+    } catch {
+      /* storage unavailable */
+    }
   }, [])
 
   const enableNotifications = async () => {
